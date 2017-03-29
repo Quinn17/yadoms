@@ -94,7 +94,7 @@ void CWakeOnLan::doWork(boost::shared_ptr<yApi::IYPluginApi> api)
 
 void CWakeOnLan::sendSocket( int port, boost::array<unsigned char, 6 + 6 * 16> magic_packet)
 {
-	//std::cout << "Sending socket ..." << std::endl;
+	std::cout << "Sending socket ..." << std::endl;
 	boost::asio::io_service io;
 	boost::asio::ip::udp::socket socket(io);
 	boost::asio::ip::udp::socket::endpoint_type endpoint(boost::asio::ip::address_v4::broadcast(), port);
@@ -115,6 +115,14 @@ boost::array<unsigned char, 6 + 6 * 16> CWakeOnLan::buildMagicPacket(boost::arra
 	{
 		magic_packet[i] = 0xFF;
 	}
+
+	//Remettre l'ancien code !!!
+	for (int i = 1; i <= 16; i++)
+	{
+		for(int j = 0; j<6;j++)
+			magic_packet[i*6+j] = aAddress[j];
+	}
+	
 	return magic_packet;
 }
 
