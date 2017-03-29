@@ -1,0 +1,11 @@
+﻿{
+	"name": "Wake On Lan",
+	"description": "Démarré à distance un appareil",
+	"recipientFields": {
+		"macAddress": {
+			"name": "Adresse Mac",
+			"description": "Le numéro de l'adresse mac de l'appeil.",
+			"regexErrorMessage": ""
+		}
+	}
+}

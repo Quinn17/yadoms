@@ -1,0 +1,20 @@
+{
+  "type": "WakeOnLan",
+  "version": "1.0.0",
+  "releaseType": "beta",
+  "author": "Quentin PALAIS",
+  "url": "https://github.com/Yadoms/yadoms/wiki/WakeOnLan",
+  "credits": "",
+  "supportedPlatforms": "all",
+  "configurationSchema": {
+    "macAddress": {
+      "type": "string",
+	  "name": "Mac address",
+      "defaultValue" : "00:00:00:00",
+	  "regex" : "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+    }
+  },
+  "supportManuallyDeviceCreation": "false",
+  "manuallyDeviceCreationConfigurationSchema": {},
+  "recipientFields" : {}
+}
