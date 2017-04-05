@@ -5,7 +5,7 @@
 namespace yApi = shared::plugin::yPluginApi;
 
 //--------------------------------------------------------------
-/// \brief	FreeMobile plugin. Allow to send notification through FreeMobileApi
+/// \brief	WakeOnLan plugin. Allow to wake a computer from Yadoms
 //--------------------------------------------------------------
 class CWakeOnLan : public plugin_cpp_api::IPlugin
 {
@@ -47,7 +47,11 @@ private:
    /// \brief	The keywords list to historize in one step for better performances
    //--------------------------------------------------------------
   // const yApi::historization::IHistorizable > m_keywords;
-
-   void sendSocket( int port, boost::array<unsigned char, 6 + 6 * 16> magic_packet);
-   boost::array<unsigned char, 6 + 6 * 16> CWakeOnLan::buildMagicPacket(boost::array<unsigned char, 6> aAddress);
+   int static const beginMagicPacketLenght = 6;
+   char static const beginMagicPacket = 0xFF;
+   int static const macAdressLenght = 6;
+   int static const numberMacAddress = 16;
+   int static const port = 9;
+   void sendSocket(boost::array<unsigned char, beginMagicPacketLenght + macAdressLenght * numberMacAddress> magic_packet);
+   boost::array<unsigned char, beginMagicPacketLenght + macAdressLenght * numberMacAddress> CWakeOnLan::buildMagicPacket(boost::array<unsigned char, 6> aAddress);
 };

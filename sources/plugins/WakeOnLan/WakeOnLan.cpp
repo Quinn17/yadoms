@@ -2,6 +2,7 @@
 #include "WakeOnLan.h"
 #include <plugin_cpp_api/ImplementationHelper.h>
 #include <shared/plugin/yPluginApi/historization/MessageFormatter.h>
+#include <shared/Log.h>
 
 
 IMPLEMENT_PLUGIN(CWakeOnLan)
@@ -36,11 +37,13 @@ void CWakeOnLan::doWork(boost::shared_ptr<yApi::IYPluginApi> api)
 
 	//api->getConfiguration();
 	
-
+	//YADOMS_LOG(information) << "Connecting UPS on serial port " << configuration.getSerialPort() << "...";
 	// the main loop
-	std::cout << "CWakeOnLan is running..." << std::endl;
+	YADOMS_LOG(information)  << "CWakeOnLan is running..." ;
 	api->setPluginState(yApi::historization::EPluginState::kRunning);
 
+
+	// TODO : load the mac address from Yadoms configuration 
 	boost::array<unsigned char, 6> address;
 
 	//unsigned char address [6];
@@ -51,15 +54,6 @@ void CWakeOnLan::doWork(boost::shared_ptr<yApi::IYPluginApi> api)
 	address[4] = 0x08;
 	address[5] = 0xE4;
 
-	// modifer le port
-	int port = 9;
-	
-
-
-	// faire l'appel de la foncion dans le while lors d'un event  et monter l'adresse mac (faire une fonction qui récupère l'adresse mac et envoie la bonne data
-
-
-
 	while (1)
 	{
 		// Wait for an event
@@ -67,17 +61,17 @@ void CWakeOnLan::doWork(boost::shared_ptr<yApi::IYPluginApi> api)
 		{
 		case yApi::IYPluginApi::kEventStopRequested:
 		{
-			std::cout << "Stop requested" << std::endl;
+			YADOMS_LOG(information)  << "Stop requested" ;
 			api->setPluginState(yApi::historization::EPluginState::kStopped);
 			return;
 		}
 		case yApi::IYPluginApi::kEventDeviceCommand:
 		{
-			std::cout << "Received event ..." << std::endl;
+			YADOMS_LOG(information)  << "Received event ..." ;
 			// A command was received from Yadoms
 			auto command = api->getEventHandler().getEventData<boost::shared_ptr<const yApi::IDeviceCommand>>();
-			std::cout << "Command received from Yadoms :" << yApi::IDeviceCommand::toString(command) << std::endl;
-			sendSocket(port, buildMagicPacket(address));
+			YADOMS_LOG(information)  << "Command received from Yadoms :" << yApi::IDeviceCommand::toString(command) ;
+			sendSocket(buildMagicPacket(address));
 			//parse the command data
 			//yApi::historization::CMessageFormatter msgInfo(command->getBody());
 
@@ -92,35 +86,31 @@ void CWakeOnLan::doWork(boost::shared_ptr<yApi::IYPluginApi> api)
 	}
 }
 
-void CWakeOnLan::sendSocket( int port, boost::array<unsigned char, 6 + 6 * 16> magic_packet)
+void CWakeOnLan::sendSocket(boost::array<unsigned char, CWakeOnLan::beginMagicPacketLenght + CWakeOnLan::macAdressLenght * CWakeOnLan::numberMacAddress> magic_packet)
 {
-	std::cout << "Sending socket ..." << std::endl;
+	YADOMS_LOG(debug)  << "Sending socket ..." ;
 	boost::asio::io_service io;
 	boost::asio::ip::udp::socket socket(io);
-	boost::asio::ip::udp::socket::endpoint_type endpoint(boost::asio::ip::address_v4::broadcast(), port);
+	boost::asio::ip::udp::socket::endpoint_type endpoint(boost::asio::ip::address_v4::broadcast(), CWakeOnLan::port);
 	socket.open(endpoint.protocol());
 	socket.set_option(boost::asio::socket_base::broadcast(true));
 	socket.send_to(boost::asio::buffer(magic_packet), endpoint);
-	
+	YADOMS_LOG(debug) << "... socket sent.";
 		
 
 }
 
-boost::array<unsigned char, 6 + 6 * 16> CWakeOnLan::buildMagicPacket(boost::array<unsigned char, 6> aAddress)
+boost::array<unsigned char, CWakeOnLan::beginMagicPacketLenght + CWakeOnLan::macAdressLenght * CWakeOnLan::numberMacAddress> CWakeOnLan::buildMagicPacket(boost::array<unsigned char, 6> aAddress)
 {
-	// modifier la data
-	boost::array<unsigned char, 6 + 6 * 16>  magic_packet;
-	//The magic packet begin with FF FF FF FF FF FF FF
-	for (int i = 0; i < 6; i++)
+	boost::array<unsigned char, CWakeOnLan::beginMagicPacketLenght + CWakeOnLan::macAdressLenght * CWakeOnLan::numberMacAddress>  magic_packet;
+	for (int i = 0; i < CWakeOnLan::beginMagicPacketLenght; i++)
 	{
-		magic_packet[i] = 0xFF;
+		magic_packet[i] = CWakeOnLan::beginMagicPacket;
 	}
-
-	//Remettre l'ancien code !!!
-	for (int i = 1; i <= 16; i++)
+	for (int i = 1; i <= CWakeOnLan::numberMacAddress; i++)
 	{
-		for(int j = 0; j<6;j++)
-			magic_packet[i*6+j] = aAddress[j];
+		for(int j = 0; j<CWakeOnLan::macAdressLenght;j++)
+			magic_packet[i*CWakeOnLan::macAdressLenght+j] = aAddress[j];
 	}
 	
 	return magic_packet;
